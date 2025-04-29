@@ -1,0 +1,57 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n, quantum;
+    int arrival[100], burst[100], remaining[100];
+    int waitingTime[100] = {0}, turnaroundTime[100] = {0};
+    int time = 0, completed = 0;
+
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    cout << "Enter the arrival time and burst time of each process:\n";
+    for (int i = 0; i < n; i++) {
+        cout << "Process " << i + 1 << " - Arrival Time: ";
+        cin >> arrival[i];
+        cout << "Burst Time: ";
+        cin >> burst[i];
+        remaining[i] = burst[i];
+    }
+
+    cout << "Enter the time quantum: ";
+    cin >> quantum;
+
+    while (completed < n) {
+        bool didWork = false;
+
+        for (int i = 0; i < n; i++) {
+            if (remaining[i] > 0 && arrival[i] <= time) {
+                didWork = true;
+                if (remaining[i] > quantum) {
+                    time += quantum;
+                    remaining[i] -= quantum;
+                } else {
+                    time += remaining[i];
+                    waitingTime[i] = time - burst[i] - arrival[i];
+                    remaining[i] = 0;
+                    completed++;
+                }
+                turnaroundTime[i] = waitingTime[i] + burst[i];
+            }
+        }
+
+        // If no process was ready at current time, advance time
+        if (!didWork) {
+            time++;
+        }
+    }
+
+    cout << "\nProcess\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n";
+    for (int i = 0; i < n; i++) {
+        cout << "P" << i + 1 << "\t" << arrival[i] << "\t\t" << burst[i]
+             << "\t\t" << waitingTime[i] << "\t\t" << turnaroundTime[i] << endl;
+    }
+
+    return 0;
+}
