@@ -1,0 +1,78 @@
+#include <iostream>
+using namespace std;
+
+// Size of the disk
+const int size_disk = 200;
+
+// Function to manually sort the request array using bubble sort
+void bubbleSort(int arr[], int N) {
+    for (int i = 0; i < N - 1; i++) {
+        for (int j = 0; j < N - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // Swap arr[j] and arr[j + 1]
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// SCAN algorithm function (head always moves to the right)
+void scan_algorithm(int arr[], int N, int initial) {
+    // Manually sorting the request array
+    bubbleSort(arr, N);
+
+    // Variables to store total head movement and the last position
+    int total_movement = 0, last = initial;
+
+    cout << "Order of requests processed: ";
+
+    // Process requests greater than or equal to the initial head position
+    for (int i = 0; i < N; i++) {
+        if (arr[i] >= initial) {
+            total_movement += abs(arr[i] - last);
+            cout << arr[i] << " ";
+            last = arr[i];
+        }
+    }
+
+    // Move to the end of the disk if necessary
+    if (last != size_disk - 1) {
+        total_movement += (size_disk - 1 - last); // Move to size_disk - 1
+        cout << size_disk - 1 << " ";
+        last = size_disk - 1;
+    }
+
+    // Output the total head movement
+    cout << "\nTotal head movement = " << total_movement << endl;
+}
+
+// Main driver function
+int main() {
+    // Total number of requests
+    int N;
+
+    // Input number of requests
+    cout << "Enter the number of disk requests: ";
+    cin >> N;
+
+    // Request array
+    int arr[N];
+
+    // Input disk requests
+    cout << "Enter the disk requests: ";
+    for (int i = 0; i < N; i++) {
+        cin >> arr[i];
+    }
+
+    // Initial position of the head pointer
+    int initial;
+    cout << "Enter the initial head position: ";
+    cin >> initial;
+
+    // Calling the SCAN algorithm function (no need for direction input, always moves right)
+    scan_algorithm(arr, N, initial);
+
+    return 0;
+}
