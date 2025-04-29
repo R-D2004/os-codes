@@ -1,0 +1,91 @@
+#include <iostream>
+#include <semaphore.h>
+#include <pthread.h>
+#include <unistd.h>     // for sleep()
+#include <cstdlib>      // for rand()
+using namespace std;
+
+#define BUFFER_SIZE 5
+#define TOTAL_PRODUCERS 8
+
+sem_t emptySlots, filledSlots, mutexLock;
+int buffer[BUFFER_SIZE] = {-1, -1, -1, -1, -1};
+int in = 0, out = 0;
+int totalConsumed = 0;
+
+void* producer(void* arg) {
+    int item = rand() % 100;
+
+    sem_wait(&emptySlots);
+    sem_wait(&mutexLock);
+
+    buffer[in] = item;
+    in = (in + 1) % BUFFER_SIZE;
+
+    cout << "PRODUCED: " << item << "    Buffer: { ";
+    for (int i = 0; i < BUFFER_SIZE - 1; ++i) {
+        cout << buffer[i] << ", ";
+    }
+    cout << buffer[BUFFER_SIZE - 1] << " }" << endl;
+
+    sem_post(&mutexLock);
+    sem_post(&filledSlots);
+
+    sleep(1); // simulate work
+    return nullptr;
+}
+
+void* consumer(void* arg) {
+    for (int i = 0; i < TOTAL_PRODUCERS; ++i) {
+        sem_wait(&filledSlots);
+        sem_wait(&mutexLock);
+
+        int item = buffer[out];
+        buffer[out] = -1;
+        out = (out + 1) % BUFFER_SIZE;
+
+        cout << "CONSUMED: " << item << "    Buffer: { ";
+        for (int j = 0; j < BUFFER_SIZE - 1; ++j) {
+            cout << buffer[j] << ", ";
+        }
+        cout << buffer[BUFFER_SIZE - 1] << " }" << endl;
+
+        sem_post(&mutexLock);
+        sem_post(&emptySlots);
+
+        sleep(1); // simulate work
+    }
+    return nullptr;
+}
+
+int main() {
+    pthread_t producers[TOTAL_PRODUCERS], consumerThread;
+
+    // Initialize semaphores
+    sem_init(&emptySlots, 0, BUFFER_SIZE);
+    sem_init(&filledSlots, 0, 0);
+    sem_init(&mutexLock, 0, 1);
+
+    // Create producer threads
+    for (int i = 0; i < TOTAL_PRODUCERS; ++i) {
+        pthread_create(&producers[i], nullptr, producer, nullptr);
+    }
+
+    // Create one consumer thread
+    pthread_create(&consumerThread, nullptr, consumer, nullptr);
+
+    // Wait for all producer threads
+    for (int i = 0; i < TOTAL_PRODUCERS; ++i) {
+        pthread_join(producers[i], nullptr);
+    }
+
+    // Wait for consumer to finish
+    pthread_join(consumerThread, nullptr);
+
+    // Cleanup
+    sem_destroy(&emptySlots);
+    sem_destroy(&filledSlots);
+    sem_destroy(&mutexLock);
+
+    return 0;
+}
