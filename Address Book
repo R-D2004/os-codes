@@ -1,0 +1,44 @@
+#!/bin/bash
+echo -e "\nEnter the filename (with extension):\n"
+read fname
+touch $fname
+while true
+do
+	echo -e "1)Insert record\n2)Display records\n3)Find a record\n4)Modify the name\n5)Delete a record\n6)Exit"
+	read ch
+	case $ch in
+	1)
+		echo "Enter Employee no:"
+		read eno
+		echo "Enter Employee name:"
+		read ename
+		echo "Enter Employee age:"
+		read eage
+		echo -e "$eno\t$ename\t$eage\n">>$fname
+		;;
+	2)cat $fname
+	;;
+	3)
+		echo "Enter the employee number to search: "
+		read num
+		grep $num $fname
+	;;
+	4)
+	echo "Enter the name to be modified: "
+	read name	
+	echo "Enter new name"
+	read newname
+	sed -i s/$name/$newname/g $fname
+	;;
+	5)
+	echo "Enter the employee number to delete the record: "
+	read num
+	grep -v $num $fname>>temp.txt
+	rm $fname
+	mv temp.txt $fname
+	;;
+	6)
+	exit
+	;;
+esac
+done
