@@ -1,0 +1,108 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Function to display a matrix
+void display(const vector<vector<int>>& mat, int p, int r) {
+    for (int i = 0; i < p; i++) {
+        cout << "Process " << i << ": ";
+        for (int j = 0; j < r; j++) {
+            cout << mat[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+// Function to check if the system is in a safe state
+bool isSafe(vector<int>& processes, vector<int>& avail, vector<vector<int>>& max, 
+            vector<vector<int>>& allot, int n, int m) {
+    vector<vector<int>> need(n, vector<int>(m));
+    vector<bool> finish(n, false);
+    vector<int> safeSeq(n);
+    vector<int> work = avail;
+
+    // Calculate need matrix
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            need[i][j] = max[i][j] - allot[i][j];
+        }
+    }
+
+    int count = 0;
+    while (count < n) {
+        bool found = false;
+        for (int p = 0; p < n; p++) {
+            if (!finish[p]) {
+                int j;
+                for (j = 0; j < m; j++) {
+                    if (need[p][j] > work[j]) {
+                        break;
+                    }
+                }
+                if (j == m) {
+                    for (int k = 0; k < m; k++) {
+                        work[k] += allot[p][k];
+                    }
+                    safeSeq[count++] = p;
+                    finish[p] = true;
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            cout << "System is in an unsafe state." << endl;
+            return false;
+        }
+    }
+
+    cout << "System is in a safe state." << endl;
+    cout << "Safe sequence is: ";
+    for (int i = 0; i < n; i++) {
+        cout << "P" << safeSeq[i] << " ";
+    }
+    cout << endl;
+    return true;
+}
+
+int main() {
+    int re, pro;
+    cout << "Enter total number of Resources: ";
+    cin >> re;
+    cout << "Enter total number of Processes: ";
+    cin >> pro;
+
+    vector<vector<int>> allo(pro, vector<int>(re));
+    vector<vector<int>> max(pro, vector<int>(re));
+
+    cout << "Enter Allocation Matrix:\n";
+    for (int i = 0; i < pro; i++) {
+        for (int j = 0; j < re; j++) {
+            cin >> allo[i][j];
+        }
+    }
+
+    cout << "Enter the Maximum Matrix:\n";
+    for (int i = 0; i < pro; i++) {
+        for (int j = 0; j < re; j++) {
+            cin >> max[i][j];
+        }
+    }
+
+    vector<int> ava(re);
+    cout << "\nAvailable Resources:\n";
+    for (int i = 0; i < re; i++) {
+        cout << "Enter available resources for resource type " << i << ": ";
+        cin >> ava[i];
+    }
+
+    vector<int> processes(pro);
+    for (int i = 0; i < pro; i++) {
+        processes[i] = i;
+    }
+
+    // Check if the system is in a safe state
+    isSafe(processes, ava, max, allo, pro, re);
+
+    return 0;
+}
